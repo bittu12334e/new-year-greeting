@@ -40,14 +40,26 @@
             text-shadow: 0 0 10px white;
         }
 
-        #stars,
-        #meteors {
+        #stars, #meteors, #fireworks {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             z-index: -1;
+        }
+
+        #socialFeed {
+            position: absolute;
+            bottom: 20px;
+            width: 80%;
+            text-align: center;
+            font-size: 1.2rem;
+            color: #ffc300;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #000;
         }
 
         #greeting {
@@ -82,89 +94,100 @@
 <body>
     <canvas id="stars"></canvas>
     <canvas id="meteors"></canvas>
-    <canvas id="confetti"></canvas>
+    <canvas id="fireworks"></canvas>
     <h1 id="headline">Countdown to 2025 🎇</h1>
     <div id="countdown">00:00:00</div>
     <div id="greeting">
         <h1>🎆 Happy New Year 2025! 🎆</h1>
         <p>Wishing you a year filled with dreams, laughter, and achievements! 🌟</p>
     </div>
+    <div id="socialFeed">Loading social feed...</div>
     <audio id="celebrationSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
     <script>
         // Canvas Setup
+        const fireworksCanvas = document.getElementById('fireworks');
+        const fireworksCtx = fireworksCanvas.getContext('2d');
         const starsCanvas = document.getElementById('stars');
         const meteorsCanvas = document.getElementById('meteors');
-        const confettiCanvas = document.getElementById('confetti');
-        const starsCtx = starsCanvas.getContext('2d');
-        const meteorsCtx = meteorsCanvas.getContext('2d');
-        const confettiCtx = confettiCanvas.getContext('2d');
         const particles = [];
-        const meteors = [];
+        const fireworks = [];
 
         function resizeCanvas() {
+            fireworksCanvas.width = window.innerWidth;
+            fireworksCanvas.height = window.innerHeight;
             starsCanvas.width = window.innerWidth;
             starsCanvas.height = window.innerHeight;
             meteorsCanvas.width = window.innerWidth;
             meteorsCanvas.height = window.innerHeight;
-            confettiCanvas.width = window.innerWidth;
-            confettiCanvas.height = window.innerHeight;
         }
 
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
 
-        // Starry Background
-        function createStars() {
-            for (let i = 0; i < 150; i++) {
-                starsCtx.fillStyle = `rgba(255, 255, 255, ${Math.random()})`;
-                const x = Math.random() * starsCanvas.width;
-                const y = Math.random() * starsCanvas.height;
-                const radius = Math.random() * 2;
-                starsCtx.beginPath();
-                starsCtx.arc(x, y, radius, 0, Math.PI * 2);
-                starsCtx.fill();
+        // Fireworks Effect
+        function createFirework(x, y) {
+            const colors = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'];
+            for (let i = 0; i < 50; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 5 + 2;
+                fireworks.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    alpha: 1,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                });
             }
         }
-        createStars();
 
-        // Meteor Shower Effect
-        function createMeteor() {
-            const startX = Math.random() * meteorsCanvas.width;
-            const startY = Math.random() * meteorsCanvas.height / 2; // Start from the upper half
-            const velocity = Math.random() * 2 + 4;
-            meteors.push({ x: startX, y: startY, vx: velocity, vy: velocity, alpha: 1 });
-        }
+        function drawFireworks() {
+            fireworksCtx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+            fireworks.forEach((particle, index) => {
+                fireworksCtx.beginPath();
+                fireworksCtx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                fireworksCtx.fillStyle = `rgba(${particle.color}, ${particle.alpha})`;
+                fireworksCtx.fill();
 
-        function drawMeteors() {
-            meteorsCtx.clearRect(0, 0, meteorsCanvas.width, meteorsCanvas.height);
-            meteors.forEach((meteor, index) => {
-                meteorsCtx.beginPath();
-                meteorsCtx.moveTo(meteor.x, meteor.y);
-                meteorsCtx.lineTo(meteor.x - meteor.vx * 10, meteor.y - meteor.vy * 10); // Tail effect
-                meteorsCtx.strokeStyle = `rgba(255, 255, 255, ${meteor.alpha})`;
-                meteorsCtx.lineWidth = 2;
-                meteorsCtx.stroke();
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                particle.alpha -= 0.02; // Fade effect
 
-                // Update Position
-                meteor.x += meteor.vx;
-                meteor.y += meteor.vy;
-                meteor.alpha -= 0.01; // Fade effect
-
-                // Remove meteor if it fades out
-                if (meteor.alpha <= 0) {
-                    meteors.splice(index, 1);
-                }
+                if (particle.alpha <= 0) fireworks.splice(index, 1); // Remove faded particles
             });
         }
 
-        function updateMeteorShower() {
-            if (Math.random() < 0.2) createMeteor(); // Add new meteors occasionally
-            drawMeteors();
-            requestAnimationFrame(updateMeteorShower);
+        function updateFireworks() {
+            if (Math.random() < 0.1) {
+                const x = Math.random() * fireworksCanvas.width;
+                const y = Math.random() * fireworksCanvas.height * 0.5;
+                createFirework(x, y);
+            }
+            drawFireworks();
+            requestAnimationFrame(updateFireworks);
         }
-        updateMeteorShower();
 
-        // Countdown Timer (Existing Code)
+        updateFireworks();
+
+        // Real-Time Social Feed
+        const socialFeedElement = document.getElementById('socialFeed');
+        const dummyFeed = [
+            "John from NYC says, 'Happy New Year!'",
+            "Sara from London says, 'Cheers to 2025!'",
+            "Liam from Sydney says, 'Happy New Year, mate!'",
+            "Emma from Tokyo says, '明けましておめでとう!'",
+            "Noah from Paris says, 'Bonne année!'"
+        ];
+        let feedIndex = 0;
+
+        function updateSocialFeed() {
+            socialFeedElement.textContent = dummyFeed[feedIndex];
+            feedIndex = (feedIndex + 1) % dummyFeed.length;
+            setTimeout(updateSocialFeed, 4000); // Change every 4 seconds
+        }
+        updateSocialFeed();
+
+        // Countdown Timer
         const countdownElement = document.getElementById('countdown');
         const greetingElement = document.getElementById('greeting');
         const sound = document.getElementById('celebrationSound');
@@ -179,6 +202,7 @@
                 countdownElement.style.display = 'none';
                 greetingElement.style.display = 'block';
                 sound.play().catch(() => console.log("Autoplay prevented."));
+                createFirework(fireworksCanvas.width / 2, fireworksCanvas.height / 2); // Center Firework
             } else {
                 const hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
                 const minutes = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
