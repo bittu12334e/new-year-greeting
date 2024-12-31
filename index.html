@@ -3,50 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Happy New Year 2024</title>
+    <title>Happy New Year 2024!</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            overflow: hidden;
-            background: black;
+            background: linear-gradient(135deg, #ff7eb3, #ff758c);
             color: white;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            text-align: center;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
         }
-        .glitch {
-            font-size: 2em;
-            animation: glitch 1s steps(5, end);
+
+        h1 {
+            font-size: 3rem;
+            text-shadow: 2px 2px 5px black;
         }
-        .greeting {
-            font-size: 2em;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
+
+        #countdown {
+            font-size: 2rem;
+            margin: 20px;
         }
-        @keyframes glitch {
-            0% { color: red; }
-            25% { color: green; transform: translate(2px, -2px); }
-            50% { color: blue; transform: translate(-2px, 2px); }
-            75% { color: yellow; transform: translate(2px, 2px); }
-            100% { color: white; transform: translate(0, 0); }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #greeting {
+            display: none;
+            animation: fadeIn 2s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <div id="content">
-        <div class="glitch" id="glitchText">System Error...</div>
-        <div class="greeting" id="greetingText">🎉 Happy New Year 2024! 🎉<br>Wishing you success and joy! 🚀✨</div>
+    <canvas id="confetti"></canvas>
+    <h1 id="headline">Countdown to 2024 🎉</h1>
+    <div id="countdown">00:00:00</div>
+    <div id="greeting">
+        <h1>🎆 Happy New Year 2024! 🎆</h1>
+        <p>Wishing you endless joy, success, and bug-free code! 🚀</p>
     </div>
-
+    <audio id="celebrationSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
     <script>
-        setTimeout(() => {
-            document.getElementById('glitchText').style.display = 'none';
-            document.getElementById('greetingText').style.opacity = 1;
-        }, 1000); // Change after 1 second
+        // Countdown Logic
+        const countdownElement = document.getElementById('countdown');
+        const greetingElement = document.getElementById('greeting');
+        const sound = document.getElementById('celebrationSound');
+        const confettiCanvas = document.getElementById('confetti');
+
+        // Confetti Initialization
+        const confetti = confettiCanvas.getContext('2d');
+        let particles = [];
+
+        function createParticle(x, y) {
+            const colors = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'];
+            return {
+                x,
+                y,
+                vx: (Math.random() - 0.5) * 5,
+                vy: Math.random() * -5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: Math.random() * 5 + 3
+            };
+        }
+
+        function updateConfetti() {
+            confetti.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.1; // Gravity
+                if (p.y > confettiCanvas.height) particles.splice(i, 1);
+                confetti.fillStyle = p.color;
+                confetti.beginPath();
+                confetti.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                confetti.fill();
+            });
+            requestAnimationFrame(updateConfetti);
+        }
+
+        function launchConfetti() {
+            for (let i = 0; i < 200; i++) {
+                particles.push(createParticle(Math.random() * confettiCanvas.width, confettiCanvas.height));
+            }
+        }
+
+        function resizeCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Countdown Timer
+        const newYear = new Date('Jan 1, 2024 00:00:00').getTime();
+        const timer = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = newYear - now;
+
+            if (distance <= 0) {
+                clearInterval(timer);
+                document.getElementById('headline').style.display = 'none';
+                countdownElement.style.display = 'none';
+                greetingElement.style.display = 'block';
+                sound.play();
+                launchConfetti();
+            } else {
+                const hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+                const minutes = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                const seconds = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
+                countdownElement.textContent = `${hours}:${minutes}:${seconds}`;
+            }
+        }, 1000);
+
+        updateConfetti();
     </script>
 </body>
 </html>
