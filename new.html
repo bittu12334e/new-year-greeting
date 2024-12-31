@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy New Year 2024</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+        }
+        .glitch {
+            font-size: 2em;
+            animation: glitch 1s steps(5, end);
+        }
+        .greeting {
+            font-size: 2em;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        @keyframes glitch {
+            0% { color: red; }
+            25% { color: green; transform: translate(2px, -2px); }
+            50% { color: blue; transform: translate(-2px, 2px); }
+            75% { color: yellow; transform: translate(2px, 2px); }
+            100% { color: white; transform: translate(0, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div class="glitch" id="glitchText">System Error...</div>
+        <div class="greeting" id="greetingText">🎉 Happy New Year 2024! 🎉<br>Wishing you success and joy! 🚀✨</div>
+    </div>
+
+    <script>
+        setTimeout(() => {
+            document.getElementById('glitchText').style.display = 'none';
+            document.getElementById('greetingText').style.opacity = 1;
+        }, 1000); // Change after 1 second
+    </script>
+</body>
+</html>
