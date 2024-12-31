@@ -41,11 +41,16 @@
         #greeting {
             display: none;
             animation: fadeIn 2s forwards;
+            text-align: center;
         }
 
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+        }
+
+        audio {
+            display: none;
         }
     </style>
 </head>
@@ -59,14 +64,14 @@
     </div>
     <audio id="celebrationSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
     <script>
-        // Countdown Logic
+        // Elements
         const countdownElement = document.getElementById('countdown');
         const greetingElement = document.getElementById('greeting');
         const sound = document.getElementById('celebrationSound');
         const confettiCanvas = document.getElementById('confetti');
+        const confetti = confettiCanvas.getContext('2d');
 
         // Confetti Initialization
-        const confetti = confettiCanvas.getContext('2d');
         let particles = [];
 
         function createParticle(x, y) {
@@ -75,7 +80,7 @@
                 x,
                 y,
                 vx: (Math.random() - 0.5) * 5,
-                vy: Math.random() * -5,
+                vy: Math.random() * -7,
                 color: colors[Math.floor(Math.random() * colors.length)],
                 size: Math.random() * 5 + 3
             };
@@ -86,7 +91,7 @@
             particles.forEach((p, i) => {
                 p.x += p.vx;
                 p.y += p.vy;
-                p.vy += 0.1; // Gravity
+                p.vy += 0.2; // Gravity
                 if (p.y > confettiCanvas.height) particles.splice(i, 1);
                 confetti.fillStyle = p.color;
                 confetti.beginPath();
@@ -97,7 +102,7 @@
         }
 
         function launchConfetti() {
-            for (let i = 0; i < 200; i++) {
+            for (let i = 0; i < 300; i++) {
                 particles.push(createParticle(Math.random() * confettiCanvas.width, confettiCanvas.height));
             }
         }
@@ -121,7 +126,7 @@
                 document.getElementById('headline').style.display = 'none';
                 countdownElement.style.display = 'none';
                 greetingElement.style.display = 'block';
-                sound.play();
+                sound.play().catch(() => console.log("Autoplay prevented."));
                 launchConfetti();
             } else {
                 const hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
