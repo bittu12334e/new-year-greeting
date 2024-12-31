@@ -40,7 +40,8 @@
             text-shadow: 0 0 10px white;
         }
 
-        #stars {
+        #stars,
+        #meteors {
             position: absolute;
             top: 0;
             left: 0;
@@ -80,6 +81,7 @@
 </head>
 <body>
     <canvas id="stars"></canvas>
+    <canvas id="meteors"></canvas>
     <canvas id="confetti"></canvas>
     <h1 id="headline">Countdown to 2025 🎇</h1>
     <div id="countdown">00:00:00</div>
@@ -89,79 +91,80 @@
     </div>
     <audio id="celebrationSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-01.mp3"></audio>
     <script>
-        // Starry Night Animation
+        // Canvas Setup
         const starsCanvas = document.getElementById('stars');
+        const meteorsCanvas = document.getElementById('meteors');
+        const confettiCanvas = document.getElementById('confetti');
         const starsCtx = starsCanvas.getContext('2d');
-        let starsArray = [];
+        const meteorsCtx = meteorsCanvas.getContext('2d');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        const particles = [];
+        const meteors = [];
 
         function resizeCanvas() {
             starsCanvas.width = window.innerWidth;
             starsCanvas.height = window.innerHeight;
+            meteorsCanvas.width = window.innerWidth;
+            meteorsCanvas.height = window.innerHeight;
             confettiCanvas.width = window.innerWidth;
             confettiCanvas.height = window.innerHeight;
         }
 
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Starry Background
         function createStars() {
             for (let i = 0; i < 150; i++) {
-                starsArray.push({
-                    x: Math.random() * starsCanvas.width,
-                    y: Math.random() * starsCanvas.height,
-                    radius: Math.random() * 2,
-                    opacity: Math.random()
-                });
-            }
-        }
-
-        function drawStars() {
-            starsCtx.clearRect(0, 0, starsCanvas.width, starsCanvas.height);
-            starsArray.forEach(star => {
+                starsCtx.fillStyle = `rgba(255, 255, 255, ${Math.random()})`;
+                const x = Math.random() * starsCanvas.width;
+                const y = Math.random() * starsCanvas.height;
+                const radius = Math.random() * 2;
                 starsCtx.beginPath();
-                starsCtx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
-                starsCtx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+                starsCtx.arc(x, y, radius, 0, Math.PI * 2);
                 starsCtx.fill();
-            });
-            requestAnimationFrame(drawStars);
-        }
-
-        // Confetti
-        const confettiCanvas = document.getElementById('confetti');
-        const confettiCtx = confettiCanvas.getContext('2d');
-        let particles = [];
-
-        function createParticle(x, y) {
-            const colors = ['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93'];
-            return {
-                x,
-                y,
-                vx: (Math.random() - 0.5) * 5,
-                vy: Math.random() * -7,
-                color: colors[Math.floor(Math.random() * colors.length)],
-                size: Math.random() * 5 + 3
-            };
-        }
-
-        function updateConfetti() {
-            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-            particles.forEach((p, i) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.2; // Gravity
-                if (p.y > confettiCanvas.height) particles.splice(i, 1);
-                confettiCtx.fillStyle = p.color;
-                confettiCtx.beginPath();
-                confettiCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                confettiCtx.fill();
-            });
-            requestAnimationFrame(updateConfetti);
-        }
-
-        function launchConfetti() {
-            for (let i = 0; i < 300; i++) {
-                particles.push(createParticle(Math.random() * confettiCanvas.width, confettiCanvas.height));
             }
         }
+        createStars();
 
-        // Countdown Timer
+        // Meteor Shower Effect
+        function createMeteor() {
+            const startX = Math.random() * meteorsCanvas.width;
+            const startY = Math.random() * meteorsCanvas.height / 2; // Start from the upper half
+            const velocity = Math.random() * 2 + 4;
+            meteors.push({ x: startX, y: startY, vx: velocity, vy: velocity, alpha: 1 });
+        }
+
+        function drawMeteors() {
+            meteorsCtx.clearRect(0, 0, meteorsCanvas.width, meteorsCanvas.height);
+            meteors.forEach((meteor, index) => {
+                meteorsCtx.beginPath();
+                meteorsCtx.moveTo(meteor.x, meteor.y);
+                meteorsCtx.lineTo(meteor.x - meteor.vx * 10, meteor.y - meteor.vy * 10); // Tail effect
+                meteorsCtx.strokeStyle = `rgba(255, 255, 255, ${meteor.alpha})`;
+                meteorsCtx.lineWidth = 2;
+                meteorsCtx.stroke();
+
+                // Update Position
+                meteor.x += meteor.vx;
+                meteor.y += meteor.vy;
+                meteor.alpha -= 0.01; // Fade effect
+
+                // Remove meteor if it fades out
+                if (meteor.alpha <= 0) {
+                    meteors.splice(index, 1);
+                }
+            });
+        }
+
+        function updateMeteorShower() {
+            if (Math.random() < 0.2) createMeteor(); // Add new meteors occasionally
+            drawMeteors();
+            requestAnimationFrame(updateMeteorShower);
+        }
+        updateMeteorShower();
+
+        // Countdown Timer (Existing Code)
         const countdownElement = document.getElementById('countdown');
         const greetingElement = document.getElementById('greeting');
         const sound = document.getElementById('celebrationSound');
@@ -176,7 +179,6 @@
                 countdownElement.style.display = 'none';
                 greetingElement.style.display = 'block';
                 sound.play().catch(() => console.log("Autoplay prevented."));
-                launchConfetti();
             } else {
                 const hours = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
                 const minutes = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
@@ -184,12 +186,6 @@
                 countdownElement.textContent = `${hours}:${minutes}:${seconds}`;
             }
         }, 1000);
-
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        createStars();
-        drawStars();
-        updateConfetti();
     </script>
 </body>
 </html>
